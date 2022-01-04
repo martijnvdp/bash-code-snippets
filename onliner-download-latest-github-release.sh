@@ -1,0 +1,2 @@
+#!/bin/bash
+wget $(wget -q -nv -O- https://api.github.com/repos/martijnvdp/tfsec/releases/latest 2>/dev/null |  jq -r '.assets[] | select(.browser_download_url | contains("linux-amd64")) | .browser_download_url') -nv -O ./tfsec && chmod +x ./tfsec
