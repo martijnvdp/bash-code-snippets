@@ -1,0 +1,51 @@
+---
+name: Auto-format
+
+on:
+  push:
+    paths:
+      - 'modules/**variables.tf'
+     
+env:
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
+jobs:
+  auto-format-code:
+    runs-on: ubuntu-latest
+    name: Auto-format
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@master
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+ 
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@v11.9
+        with:
+          separator: ","
+      
+      - name: auto sort variables in variables.tf files
+        run: |
+          rootDir=$(git rev-parse --show-toplevel)
+          mapfile -d ',' -t files < <(printf '%s,' "${{ steps.changed-files.outputs.all_modified_files }}")
+          for variable_file in ${files[*]}
+          do
+            if [[ $variable_file == *"variables.tf"* ]]; then
+              cat $variable_file | awk -f $rootDir/scripts/sort_tf_files.awk | sudo tee $variable_file.sorted
+              sudo cp $variable_file.sorted $variable_file
+              sudo rm $variable_file.sorted
+            fi
+          done
+
+      - name: Commit & Push changes
+        run: |
+          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git remote add github "https://$GITHUB_ACTOR:$GITHUB_TOKEN@github.com/$GITHUB_REPOSITORY.git"
+          git pull github ${GITHUB_REF} --ff-only
+          git add *
+          git commit -m "Auto formated code." || true
+          git push github HEAD:${GITHUB_REF}
