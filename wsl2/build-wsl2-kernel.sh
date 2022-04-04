@@ -42,7 +42,7 @@ cp arch/x86/boot/bzImage ${USERDIR}/kernel
 readarray -d / -t userdirarr <<< "$USERDIR"
 cat << EOF >  ${USERDIR}/.wslconfig
 [wsl2]
-kernel=C:\\Users\\${userdirarr[4]}\\kernel\\bzImage
+kernel=C:\\\\Users\\\\$( echo ${userdirarr[4]})\\\\kernel\\\\bzImage
 EOF
 # restart/shutdown wsl
 cmd.exe /c "wsl --shutdown"
