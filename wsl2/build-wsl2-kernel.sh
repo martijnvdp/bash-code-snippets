@@ -19,14 +19,16 @@ USERDIR=$(wslpath "$(wslvar USERPROFILE)")
 # switch to home folder (build will fail in /mnt/c/users/user need linux fs)
 cd /home/${USER}
 sudo apt update && sudo apt install -y git build-essential flex bison dwarves libssl-dev libelf-dev python3
-mkdir src
-cd src
+mkdir kernel-src
+cd kernel-src
 git init
 git remote add origin https://github.com/microsoft/WSL2-Linux-Kernel.git
 git config --local gc.auto 0
 git -c protocol.version=2 fetch --no-tags --prune --progress --no-recurse-submodules --depth=1 origin +${WSL_VER}:refs/remotes/origin/build/linux-msft-wsl-5.10.y
 git checkout --progress --force -B build/${WSL_BRANCH} refs/remotes/origin/build/${WSL_BRANCH}
 
+# set custom version ( uname -r )
+sed -i 's/-microsoft-standard-WSL2/-microsoft-WSL2-with-cilium/' Microsoft/config-wsl
 # adds support for clientIP-based session affinity 
 sed -i 's/# CONFIG_NETFILTER_XT_MATCH_RECENT is not set/CONFIG_NETFILTER_XT_MATCH_RECENT=y/' Microsoft/config-wsl
 # required modules for Cilium
@@ -44,5 +46,9 @@ cat << EOF >  ${USERDIR}/.wslconfig
 [wsl2]
 kernel=C:\\\\Users\\\\$( echo ${userdirarr[4]})\\\\kernel\\\\bzImage
 EOF
+# cleanup
+cd ..
+rm -rf kernel-src
 # restart/shutdown wsl
 cmd.exe /c "wsl --shutdown"
+# start wsl and check version with uname -r
