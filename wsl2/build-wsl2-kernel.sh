@@ -4,10 +4,11 @@
 # update wsl before running with: wsl --update
 CPU=2
 IMAGEFILE="bzImage-$(date +%s)"
-URL=$(curl https://api.github.com/repos/microsoft/WSL2-Linux-Kernel/releases/latest 2>/dev/null |jq -r '.tarball_url')
+SRC=$(curl https://api.github.com/repos/microsoft/WSL2-Linux-Kernel/releases/latest 2>/dev/null)
+URL=$(echo ${SRC} | jq -r '.tarball_url')
 USERDIR=$(wslpath "$(wslvar USERPROFILE)")
-WSL_BRANCH=$(curl https://api.github.com/repos/microsoft/WSL2-Linux-Kernel/releases/latest 2>/dev/null |jq -r '.target_commitish')
-WSL_VER=$(curl https://api.github.com/repos/microsoft/WSL2-Linux-Kernel/releases/latest 2>/dev/null |jq -r '.tag_name')
+WSL_BRANCH=$(echo ${SRC} | jq -r '.target_commitish')
+WSL_VER=$(echo ${SRC} | jq -r '.tag_name')
 
 # switch to home folder (build in /user/home bc need linux fs)
 cd /home/${USER}
