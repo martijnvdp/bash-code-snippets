@@ -3,6 +3,7 @@
 #
 # update wsl before running with: wsl --update
 CPU=2
+CUSTOM_VER="-microsoft-WSL2-cilium"
 IMAGEFILE="bzImage-$(date +%s)"
 SRC=$(curl https://api.github.com/repos/microsoft/WSL2-Linux-Kernel/releases/latest 2>/dev/null)
 URL=$(echo ${SRC} | jq -r '.tarball_url')
@@ -21,7 +22,7 @@ wget ${URL} -O kernel.tar.gz
 tar --strip-components=1 -zxf kernel.tar.gz
 
 # set custom version ( uname -r )
-sed -i 's/-microsoft-standard-WSL2/-microsoft-WSL2-with-cilium/' Microsoft/config-wsl
+sed -i 's/-microsoft-standard-WSL2/'${CUSTOM_VER}'/' Microsoft/config-wsl
 # adds support for clientIP-based session affinity 
 sed -i 's/# CONFIG_NETFILTER_XT_MATCH_RECENT is not set/CONFIG_NETFILTER_XT_MATCH_RECENT=y/' Microsoft/config-wsl
 # required modules for Cilium
@@ -39,7 +40,7 @@ cp arch/x86/boot/bzImage ${USERDIR}/kernel/${IMAGEFILE}
 readarray -d / -t userdirarr <<< "$USERDIR"
 cat << EOF >  ${USERDIR}/.wslconfig
 [wsl2]
-kernel=C:\\\\Users\\\\$( echo ${userdirarr[4]})\\\\kernel\\\\${IMAGEFILE}
+kernel=$(echo 'C:\\Users\\'$( echo ${userdirarr[4]})'\\kernel\\'${IMAGEFILE})
 EOF
 
 # cleanup
