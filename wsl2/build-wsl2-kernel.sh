@@ -1,31 +1,20 @@
 #!/bin/bash
 # script to build latest wsl2 kernel with custom options
-# run with wsl on windows ( fsutil.exe file setCaseSensitiveInfo src enable)
 #
 # update wsl before running with: wsl --update
-#
-# copy the bzImage file and create a wsl config file: 
-# example: C:\Users\userx\.wslconfig
-# [wsl2]
-# kernel=C:\\Users\\<your_user>\\kernel\\bzImage
-# 
-# open powershell run:
-# wsl --shutdown
 
-WSL_VER=linux-msft-wsl-5.10.102.1
-WSL_BRANCH=linux-msft-wsl-5.10.y
+WSL_VER=$(curl https://api.github.com/repos/microsoft/WSL2-Linux-Kernel/releases/latest 2>/dev/null |jq -r '.tag_name')
+WSL_BRANCH=$(curl https://api.github.com/repos/microsoft/WSL2-Linux-Kernel/releases/latest 2>/dev/null |jq -r '.target_commitish')
 USERDIR=$(wslpath "$(wslvar USERPROFILE)")
+URL=$(curl https://api.github.com/repos/microsoft/WSL2-Linux-Kernel/releases/latest 2>/dev/null |jq -r '.tarball_url')
 
 # switch to home folder (build will fail in /mnt/c/users/user need linux fs)
 cd /home/${USER}
 sudo apt update && sudo apt install -y git build-essential flex bison dwarves libssl-dev libelf-dev python3
 mkdir kernel-src
 cd kernel-src
-git init
-git remote add origin https://github.com/microsoft/WSL2-Linux-Kernel.git
-git config --local gc.auto 0
-git -c protocol.version=2 fetch --no-tags --prune --progress --no-recurse-submodules --depth=1 origin +${WSL_VER}:refs/remotes/origin/build/linux-msft-wsl-5.10.y
-git checkout --progress --force -B build/${WSL_BRANCH} refs/remotes/origin/build/${WSL_BRANCH}
+wget ${URL} -O kernel.tar.gz
+tar --strip-components=1 -zxf kernel.tar.gz
 
 # set custom version ( uname -r )
 sed -i 's/-microsoft-standard-WSL2/-microsoft-WSL2-with-cilium/' Microsoft/config-wsl
@@ -38,8 +27,8 @@ sed -i 's/# CONFIG_NETFILTER_XT_TARGET_TPROXY is not set/CONFIG_NETFILTER_XT_TAR
 # build the kernel j<cpu cores>
 make -j2 KCONFIG_CONFIG=Microsoft/config-wsl
 # copy kernel image to user dir/kernel
-mkdir ${USERDIR}/kernel
-cp arch/x86/boot/bzImage ${USERDIR}/kernel
+mkdir ${USERDIR}/kernel  
+sudo cp arch/x86/boot/bzImage ${USERDIR}/kernel
 # create .wslconfig file and point kernel to newly build 
 readarray -d / -t userdirarr <<< "$USERDIR"
 cat << EOF >  ${USERDIR}/.wslconfig
