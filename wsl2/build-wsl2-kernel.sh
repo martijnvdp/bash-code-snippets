@@ -5,11 +5,8 @@
 CPU=2
 CUSTOM_VER="-microsoft-WSL2-cilium"
 IMAGEFILE="bzImage-$(date +%s)"
-SRC=$(curl https://api.github.com/repos/microsoft/WSL2-Linux-Kernel/releases/latest 2>/dev/null)
-URL=$(echo ${SRC} | jq -r '.tarball_url')
+URL=$(curl https://api.github.com/repos/microsoft/WSL2-Linux-Kernel/releases/latest 2>/dev/null | jq -r '.tarball_url')
 USERDIR=$(wslpath "$(wslvar USERPROFILE)")
-WSL_BRANCH=$(echo ${SRC} | jq -r '.target_commitish')
-WSL_VER=$(echo ${SRC} | jq -r '.tag_name')
 
 # switch to home folder (build in /user/home bc need linux fs)
 cd /home/${USER}
