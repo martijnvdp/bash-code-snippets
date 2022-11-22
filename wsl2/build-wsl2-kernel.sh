@@ -7,6 +7,11 @@ CUSTOM_VER="-microsoft-WSL2-cilium"
 IMAGEFILE="bzImage-$(date +%s)"
 URL=$(curl https://api.github.com/repos/microsoft/WSL2-Linux-Kernel/releases/latest 2>/dev/null | jq -r '.tarball_url')
 USERDIR=$(wslpath "$(wslvar USERPROFILE)")
+TARGET="WSL2022"
+DT=$(date +%s)
+
+# check jq
+which jq || sudo apt install -y yq
 
 # switch to home folder (build in /user/home bc need linux fs)
 cd /home/${USER}
@@ -30,14 +35,14 @@ sed -i 's/# CONFIG_NETFILTER_XT_TARGET_TPROXY is not set/CONFIG_NETFILTER_XT_TAR
 make -j${CPU} KCONFIG_CONFIG=Microsoft/config-wsl
 
 # copy kernel image to user dir/kernel
-mkdir ${USERDIR}/kernel  
-cp arch/x86/boot/bzImage ${USERDIR}/kernel/${IMAGEFILE}
+mkdir ${USERDIR}/${TARGET}
+cp arch/x86/boot/bzImage ${USERDIR}/${TARGET}/${IMAGEFILE}-${DT}
 
 # create .wslconfig file and point kernel to newly build 
 readarray -d / -t userdirarr <<< "$USERDIR"
 cat << EOF >  ${USERDIR}/.wslconfig
 [wsl2]
-kernel=$(echo 'C:\\Users\\'$( echo ${userdirarr[4]})'\\kernel\\'${IMAGEFILE})
+kernel=$(echo 'C:\\Users\\'$( echo ${userdirarr[4]})'\\'${TARGET}'\\'${IMAGEFILE}-${DT})
 EOF
 
 # cleanup
@@ -45,6 +50,7 @@ cd ..
 rm -rf kernel-src
 
 # restart/shutdown wsl
+read -p "Press a key to continue and restart WSL"
 cmd.exe /c "wsl --shutdown"
 
 # start wsl and check version with uname -r
