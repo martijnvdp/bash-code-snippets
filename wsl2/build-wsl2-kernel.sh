@@ -7,9 +7,7 @@ CUSTOM_VER="-microsoft-WSL2-cilium"
 IMAGEFILE="bzImage-$(date +%s)"
 URL=$(curl https://api.github.com/repos/microsoft/WSL2-Linux-Kernel/releases/latest 2>/dev/null | jq -r '.tarball_url')
 USERDIR=$(wslpath "$(wslvar USERPROFILE)")
-TARGET="WSL2022"
-DT=$(date +%s)
-
+TARGET="kernel"
 # check jq
 which jq || sudo apt install -y yq
 
@@ -36,13 +34,13 @@ make -j${CPU} KCONFIG_CONFIG=Microsoft/config-wsl
 
 # copy kernel image to user dir/kernel
 mkdir ${USERDIR}/${TARGET}
-cp arch/x86/boot/bzImage ${USERDIR}/${TARGET}/${IMAGEFILE}-${DT}
+cp arch/x86/boot/bzImage ${USERDIR}/${TARGET}/${IMAGEFILE}
 
 # create .wslconfig file and point kernel to newly build 
 readarray -d / -t userdirarr <<< "$USERDIR"
 cat << EOF >  ${USERDIR}/.wslconfig
 [wsl2]
-kernel=$(echo 'C:\\Users\\'$( echo ${userdirarr[4]})'\\'${TARGET}'\\'${IMAGEFILE}-${DT})
+kernel=$(echo 'C:\\Users\\'$( echo ${userdirarr[4]})'\\'${TARGET}'\\'${IMAGEFILE})
 EOF
 
 # cleanup
