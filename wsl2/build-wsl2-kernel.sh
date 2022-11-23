@@ -53,7 +53,7 @@ rm -rf kernel-src
 
 # restart/shutdown wsl
 read -p "Press a key to continue and restart WSL"
-cmd.exe /c "wsl --shutdown"
+/mnt/c/Windows/system32/cmd.exe /c "wsl --shutdown"
 
 # start wsl and check version with uname -r
 # and restart docker desktop
