@@ -9,7 +9,7 @@ URL=$(curl https://api.github.com/repos/microsoft/WSL2-Linux-Kernel/releases/lat
 USERDIR=$(wslpath "$(wslvar USERPROFILE)")
 TARGET="kernel"
 # check jq
-which jq || sudo apt install -y yq
+which jq || sudo apt install -y jq
 
 # switch to home folder (build in /user/home bc need linux fs)
 cd /home/${USER}
@@ -40,7 +40,7 @@ cp arch/x86/boot/bzImage ${USERDIR}/${TARGET}/${IMAGEFILE}
 readarray -d / -t userdirarr <<< "$USERDIR"
 cat << EOF >  ${USERDIR}/.wslconfig
 [wsl2]
-kernel=$(echo 'C:\\Users\\'$( echo ${userdirarr[4]})'\\'${TARGET}'\\'${IMAGEFILE})
+kernel=$(echo 'C:\Users\'$( echo ${userdirarr[4]})'\'${TARGET}'\'${IMAGEFILE})
 EOF
 
 # cleanup
